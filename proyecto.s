@@ -9,13 +9,13 @@
 .equ GPIOA_MODER_PA3_OUT, 0x01 << (2 * 3)  // PA3 configurado en modo salida
 .equ GPIOA_MODER_PA4_OUT, 0x01 << (2 * 4)  // PA4 configurado en modo salida
 
-.equ GPIOA_ODR_PA0, 0x01 << 0  // PA0 output 
-.equ GPIOA_ODR_PA1, 0x01 << 1  // PA1 output 
-.equ GPIOA_ODR_PA2, 0x01 << 2  // PA2 output 
-.equ GPIOA_ODR_PA3, 0x01 << 3  // PA3 output 
-.equ GPIOA_ODR_PA4, 0x01 << 4  // PA4 output 
+.equ GPIOA_ODR_PA0, 0x01 << 0  // PA0 output
+.equ GPIOA_ODR_PA1, 0x01 << 1  // PA1 output
+.equ GPIOA_ODR_PA2, 0x01 << 2  // PA2 output
+.equ GPIOA_ODR_PA3, 0x01 << 3  // PA3 output
+.equ GPIOA_ODR_PA4, 0x01 << 4  // PA4 output
 
-.equ    DELAY_COUNT, 4500000        // Aproximadamente 1.5 segundos de retardo (ajustar según la velocidad del reloj)
+.equ DELAY_COUNT, 4500000        // Aproximadamente 1.5 segundos de retardo (ajustar según la velocidad del reloj)
 
 .global _start
 _start:
@@ -23,70 +23,86 @@ _start:
     // Habilitar el reloj para GPIOA
     LDR R0, =RCC_AHB1ENR
     LDR R1, [R0]
-    ORR R1, R1, #0x01
+    MOV R2, #0x01
+    ORR R1, R1, R2
     STR R1, [R0]
 
     // Configurar PA0, PA1, PA2, PA3, PA4 en modo salida
     LDR R0, =GPIOA_BASE
     LDR R1, [R0, #GPIOA_MODER]
-    ORR R1, R1, #(GPIOA_MODER_PA0_OUT | GPIOA_MODER_PA1_OUT | GPIOA_MODER_PA2_OUT | GPIOA_MODER_PA3_OUT | GPIOA_MODER_PA4_OUT)
+
+    LDR R2, =GPIOA_MODER_PA0_OUT | GPIOA_MODER_PA1_OUT | GPIOA_MODER_PA2_OUT | GPIOA_MODER_PA3_OUT | GPIOA_MODER_PA4_OUT
+    ORR R1, R1, R2
     STR R1, [R0, #GPIOA_MODER]
 
     // Setear PA0, PA1, PA2, PA3, PA4 a 1
     LDR R1, [R0, #GPIOA_ODR]
-    ORR R1, R1, #(GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3 | GPIOA_ODR_PA4)
+    LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3 | GPIOA_ODR_PA4
+    ORR R1, R1, R2
     STR R1, [R0, #GPIOA_ODR]
-
-
 
 loop:
 
     // Estado 1: PA0=1, PA1=1, PA2=0, PA3=1, PA4=1
     LDR R1, [R0, #GPIOA_ODR]
-    BIC R1, R1, #(GPIOA_ODR_PA2)  // Clear PA2
-    ORR R1, R1, #(GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA3 | GPIOA_ODR_PA4)  // Set PA0, PA1, PA3, PA4
+    MOV R2, #GPIOA_ODR_PA2
+    BIC R1, R1, R2  // Clear PA2
+    LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA3 | GPIOA_ODR_PA4
+    ORR R1, R1, R2  // Set PA0, PA1, PA3, PA4
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
     // Estado 2: PA0=1, PA1=0, PA2=1, PA3=1, PA4=1
     LDR R1, [R0, #GPIOA_ODR]
-    ORR R1, R1, #(GPIOA_ODR_PA0 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3 | GPIOA_ODR_PA4)  // Set PA0, PA2, PA3, PA4
-    BIC R1, R1, #(GPIOA_ODR_PA1)  // Clear PA1
+    LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3 | GPIOA_ODR_PA4
+    ORR R1, R1, R2  // Set PA0, PA2, PA3, PA4
+    MOV R2, #GPIOA_ODR_PA1
+    BIC R1, R1, R2  // Clear PA1
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
     // Estado 3: PA0=0, PA1=0, PA2=0, PA3=1, PA4=0
     LDR R1, [R0, #GPIOA_ODR]
-    BIC R1, R1, #(GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA4)  // Clear PA0, PA1, PA2, PA4
-    ORR R1, R1, #(GPIOA_ODR_PA3)  // Set PA3
+    LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA4
+    BIC R1, R1, R2  // Clear PA0, PA1, PA2, PA4
+    MOV R2, #GPIOA_ODR_PA3
+    ORR R1, R1, R2  // Set PA3
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
     // Estado 4: PA0=1, PA1=1, PA2=1, PA3=1, PA4=0
     LDR R1, [R0, #GPIOA_ODR]
-    BIC R1, R1, #(GPIOA_ODR_PA4)  // Clear PA4
-    ORR R1, R1, #(GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3 )  // Set PA0, PA1, PA2, PA3
+    MOV R2, #GPIOA_ODR_PA4
+    BIC R1, R1, R2  // Clear PA4
+    LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3
+    ORR R1, R1, R2  // Set PA0, PA1, PA2, PA3
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
     // Estado 5: PA0=0, PA1=1, PA2=1, PA3=1, PA4=0
     LDR R1, [R0, #GPIOA_ODR]
-    BIC R1, R1, #(GPIOA_ODR_PA0 | GPIOA_ODR_PA4)  // Clear PA0, PA4
-    ORR R1, R1, #(GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3 )  // Set PA1, PA2, PA3
+    LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA4
+    BIC R1, R1, R2  // Clear PA0, PA4
+    LDR R2, =GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3
+    ORR R1, R1, R2  // Set PA1, PA2, PA3
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
     // Estado 6: PA0=0, PA1=0, PA2=0, PA3=0, PA4=1
     LDR R1, [R0, #GPIOA_ODR]
-    BIC R1, R1, #(GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3)  // Clear PA0, PA1, PA2, PA3
-    ORR R1, R1, #(GPIOA_ODR_PA4)  // Set PA4
+    LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3
+    BIC R1, R1, R2  // Clear PA0, PA1, PA2, PA3
+    MOV R2, #GPIOA_ODR_PA4
+    ORR R1, R1, R2  // Set PA4
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
     // Estado 7: PA0=1, PA1=0, PA2=1, PA3=0, PA4=1
     LDR R1, [R0, #GPIOA_ODR]
-    BIC R1, R1, #(GPIOA_ODR_PA1 | GPIOA_ODR_PA3)  // Clear PA1, PA3
-    ORR R1, R1, #(GPIOA_ODR_PA0 | GPIOA_ODR_PA2 | GPIOA_ODR_PA4 )  // Set PA0, PA2, PA4
+    LDR R2, =GPIOA_ODR_PA1 | GPIOA_ODR_PA3
+    BIC R1, R1, R2  // Clear PA1, PA3
+    LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA2 | GPIOA_ODR_PA4
+    ORR R1, R1, R2  // Set PA0, PA2, PA4
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
@@ -94,14 +110,15 @@ loop:
 
 // Rutina de retardo
 delay:
-    ldr r3, =DELAY_COUNT
+    LDR R3, =DELAY_COUNT
 delay_loop:
-    subs r3, r3, #1
-    bne delay_loop
-    bx lr
+    SUB R3, R3, #1
+    CMP R3, #0
+    BNE delay_loop
+    BX LR
 
 end:
-	SWI	0
+    SWI 0
 .section .data
 
     .align

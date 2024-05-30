@@ -5,20 +5,20 @@
 
 .equ GPIOA_MODER_PA0_OUT, 0x01 << (2 * 0)  // PA0 configurado en modo salida
 .equ GPIOA_MODER_PA1_OUT, 0x01 << (2 * 1)  // PA1 configurado en modo salida
-.equ GPIOA_MODER_PA2_OUT, 0x01 << (2 * 2)  // PA2 configurado en modo salida
-.equ GPIOA_MODER_PA3_OUT, 0x01 << (2 * 3)  // PA3 configurado en modo salida
-.equ GPIOA_MODER_PA4_OUT, 0x01 << (2 * 4)  // PA4 configurado en modo salida
+.equ GPIOA_MODER_PA2_OUT, 0x01 << (2 * 4)  // PA2 configurado en modo salida
+.equ GPIOA_MODER_PA3_OUT, (1 << 16)  // PA3 configurado en modo salida
+.equ GPIOA_MODER_PA4_OUT, (1 << 18)  // PA4 configurado en modo salida
 
 .equ GPIOA_ODR_PA0, 0x01 << 0  // PA0 output
 .equ GPIOA_ODR_PA1, 0x01 << 1  // PA1 output
-.equ GPIOA_ODR_PA2, 0x01 << 2  // PA2 output
-.equ GPIOA_ODR_PA3, 0x01 << 3  // PA3 output
-.equ GPIOA_ODR_PA4, 0x01 << 4  // PA4 output
+.equ GPIOA_ODR_PA2, 0x01 << 4  // PA2 output
+.equ GPIOA_ODR_PA3, 0x01 << 8  // PA3 output
+.equ GPIOA_ODR_PA4, 0x01 << 9  // PA4 output
 
 .equ DELAY_COUNT, 4500000        // Aproximadamente 1.5 segundos de retardo (ajustar según la velocidad del reloj)
 
-.global _start
-_start:
+.global _main
+_main:
 
     // Habilitar el reloj para GPIOA
     LDR R0, =RCC_AHB1ENR
@@ -61,18 +61,20 @@ loop:
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
-    // Estado 3: PA0=0, PA1=0, PA2=0, PA3=1, PA4=0
+    // Estado 3: PA0=0, PA1=0, PA2=0, PA3=1, PA4=0 NO SE APAGA EL 0 ni el 4
     LDR R1, [R0, #GPIOA_ODR]
     LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA4
     BIC R1, R1, R2  // Clear PA0, PA1, PA2, PA4
-    MOV R2, #GPIOA_ODR_PA3
+    LDR R2, =GPIOA_ODR_PA3
+    LDR R2, [R2]
     ORR R1, R1, R2  // Set PA3
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
     // Estado 4: PA0=1, PA1=1, PA2=1, PA3=1, PA4=0
     LDR R1, [R0, #GPIOA_ODR]
-    MOV R2, #GPIOA_ODR_PA4
+    LDR R2, =GPIOA_ODR_PA4
+    LDR R2, [R2]
     BIC R1, R1, R2  // Clear PA4
     LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3
     ORR R1, R1, R2  // Set PA0, PA1, PA2, PA3
@@ -88,11 +90,12 @@ loop:
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
-    // Estado 6: PA0=0, PA1=0, PA2=0, PA3=0, PA4=1
+    // Estado 6: PA0=0, PA1=0, PA2=0, PA3=0, PA4=1 No se apaga el 4
     LDR R1, [R0, #GPIOA_ODR]
     LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3
     BIC R1, R1, R2  // Clear PA0, PA1, PA2, PA3
-    MOV R2, #GPIOA_ODR_PA4
+    LDR R2, =GPIOA_ODR_PA4
+    LDR R2, [R2]
     ORR R1, R1, R2  // Set PA4
     STR R1, [R0, #GPIOA_ODR]
     BL delay
@@ -120,6 +123,10 @@ delay_loop:
 end:
     SWI 0
 .section .data
+
+	GPIOA_MODER_PA3_OUT: .word  0x10000
+	GPIOA_MODER_PA4_OUT: .word  0x40000
+
 
     .align
     .end

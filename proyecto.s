@@ -62,11 +62,11 @@ loop:
     BL delay
 
     // Estado 3: PA0=0, PA1=0, PA2=0, PA3=1, PA4=0 NO SE APAGA EL 0 ni el 4
+    // Estado 3: PA0=0, PA1=0, PA2=0, PA3=1, PA4=0
     LDR R1, [R0, #GPIOA_ODR]
     LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA4
     BIC R1, R1, R2  // Clear PA0, PA1, PA2, PA4
     LDR R2, =GPIOA_ODR_PA3
-    LDR R2, [R2]
     ORR R1, R1, R2  // Set PA3
     STR R1, [R0, #GPIOA_ODR]
     BL delay
@@ -90,12 +90,12 @@ loop:
     STR R1, [R0, #GPIOA_ODR]
     BL delay
 
-    // Estado 6: PA0=0, PA1=0, PA2=0, PA3=0, PA4=1 No se apaga el 4
+
+    // Estado 6: PA0=0, PA1=0, PA2=0, PA3=0, PA4=1
     LDR R1, [R0, #GPIOA_ODR]
     LDR R2, =GPIOA_ODR_PA0 | GPIOA_ODR_PA1 | GPIOA_ODR_PA2 | GPIOA_ODR_PA3
     BIC R1, R1, R2  // Clear PA0, PA1, PA2, PA3
     LDR R2, =GPIOA_ODR_PA4
-    LDR R2, [R2]
     ORR R1, R1, R2  // Set PA4
     STR R1, [R0, #GPIOA_ODR]
     BL delay
